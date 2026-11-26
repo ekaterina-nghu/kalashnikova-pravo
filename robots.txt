@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kalashnikova-pravo.ru/sitemap.xml
