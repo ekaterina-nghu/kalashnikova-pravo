@@ -37,7 +37,7 @@ def structured_data(page, url):
     person = BASE + '/#ekaterina'
     name, minimum, _ = page['rates'][0]
     graph = [
-        {'@type': 'Person', '@id': person, 'name': 'Екатерина Калашникова', 'jobTitle': 'Юрист', 'url': BASE + '/'},
+        {'@type': 'Person', '@id': person, 'name': 'Калашникова Екатерина Павловна', 'telephone': '+79837202800', 'jobTitle': 'Юрист', 'url': BASE + '/'},
         {'@type': 'WebPage', '@id': url + '#page', 'url': url, 'name': page['title'],
          'description': page['description'], 'inLanguage': 'ru', 'mainEntity': {'@id': url + '#service'},
          'breadcrumb': {'@id': url + '#breadcrumbs'}},
@@ -159,6 +159,29 @@ def editorial_pages(pages, articles, header):
     return routes
 
 
+def legal_page(header):
+    route = '/pravovaya-informaciya/'
+    url = BASE + route
+    title = 'Исполнитель и политика обработки персональных данных | Правовой кабинет'
+    heading = 'Исполнитель и персональные данные'
+    description = 'Сведения об исполнителе юридических услуг, порядок обработки данных и рабочий контакт для обращений.'
+    crumbs = '<a href="/">Главная</a> / <span aria-current="page">Правовая информация</span>'
+    schema = {'@context': 'https://schema.org', '@graph': [
+        {'@type': 'WebPage', '@id': url, 'url': url, 'name': title, 'description': description,
+         'inLanguage': 'ru', 'about': {'@id': BASE + '/#ekaterina'}, 'breadcrumb': {'@id': url + '#breadcrumbs'}},
+        {'@type': 'BreadcrumbList', '@id': url + '#breadcrumbs', 'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Главная', 'item': BASE + '/'},
+            {'@type': 'ListItem', 'position': 2, 'name': 'Правовая информация', 'item': url}]}]}
+    template = Template((TOOLS / 'editorial-page.html').read_text())
+    page = template.substitute(header=header, title=title, url=url, category='Правовой кабинет',
+                               kind='website', heading=heading, description=description, crumbs=crumbs,
+                               content=(TOOLS / 'privacy-content.html').read_text(),
+                               schema=json.dumps(schema, ensure_ascii=False, indent=2))
+    folder = ROOT / route.strip('/')
+    folder.mkdir(exist_ok=True)
+    (folder / 'index.html').write_text(page)
+
+
 def main():
     data = json.loads((TOOLS / 'services.json').read_text())
     pages = {p['slug']: p for p in data}
@@ -175,6 +198,7 @@ def main():
         (folder / 'index.html').write_text(render(page, pages, template, header, articles))
     editorial_header = header.replace('href="#', 'href="/#')
     extra = editorial_pages(pages, articles, editorial_header)
+    legal_page(editorial_header)
     # Preserve sitemap entries for pages outside the catalogue.
     sitemap = ROOT / 'sitemap.xml'
     ns = 'http://www.sitemaps.org/schemas/sitemap/0.9'
